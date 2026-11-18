@@ -81,6 +81,15 @@ export const carry = (saved: unknown): Carry => {
   };
 };
 
+/** What a share or export lists (Buzz's agent menu offers Share only with
+ * this): Buzz's own `claude` runtime and the model, with the instructions
+ * from `carry`. Whoever adds the agent gets Buzz's Claude agent on their own
+ * sign-in: this plugin, its subscription and the workspace aren't shared. */
+export const exportShared = (saved: unknown) => ({
+  runtime: "claude",
+  model: config(saved).model.trim(),
+});
+
 /** A brought-over agent keeps the instructions and workspace it carries. */
 export const adopt = (brought: Carry, saved: Config): Config => ({
   ...saved,

@@ -11,28 +11,38 @@ shouldn't offer claude.ai (subscription) sign-in unless Anthropic approves them,
 kept private to its owner's own computer and agents. Agents running on it use your subscription's
 usage limits.
 
-## Features
-
-Same as [buzz-opencode](https://github.com/dotcollectiveanz/buzz-opencode):
+## What it does
 
 - **Harness:** Claude (subscription) in Agents → Harness, for new agents or by switching an existing
-  one. Its instructions and workspace carry over.
-- **Identity:** Permissions (Claude Code's permission mode: Manual, Accept edits, Plan, Auto, Bypass),
-  Model and Thinking, listed from your Claude Code, and Instructions.
-- **Settings:** Workspace and Conversations (one session per thread, or per channel).
+  one. Its instructions and workspace carry over, both ways.
+- **One session per conversation.** Each thread (or each channel, if you choose) is one continuing
+  Claude Code session, with the Buzz tools.
+- **Settings:** Permissions (Claude Code's permission mode: Manual, Accept edits, Plan, Auto, Bypass),
+  Model and Thinking, listed from your Claude Code, and Instructions; then Workspace and
+  Conversations (per thread or per channel).
 - **Activity:** the agent's conversations, whether each is working, and each one's transcript, read
   from Claude Code's own history in `~/.claude/projects`.
-- **Synced settings:** permissions, model, thinking level and scope sync across your devices.
-- A failed turn says so in its thread and tags you.
+- **Share to the Marketplace.** The agent's card menu offers **Share**, as for Buzz's own Claude
+  agents. The listing is an ordinary Buzz Claude agent (name, picture, model and instructions):
+  whoever adds it runs it on Buzz's own Claude harness with their own sign-in. This plugin, your
+  subscription and your workspace are never part of it.
+- **Synced settings:** permissions, model, thinking level and conversations sync across your
+  devices.
+- **Failures are reported.** A failed turn says so in its thread and tags you.
+
+Claude runs commands as you, so an agent acts only on your own mentions, or ones you attested: Buzz's
+harness kit admits nothing else.
 
 ## Requirements
 
 - Buzz desktop 1.0 on macOS.
 - Claude Code installed and signed in with your subscription (`claude`, then `/login`). Check with
   `claude auth status`.
-- Node.js 22 or later, with `npx` on the PATH your login shell gives Buzz. The plugin runs the Claude
-  Code ACP adapter with `npx`, pinned to `@agentclientprotocol/claude-agent-acp@0.106.0`: the first
-  start downloads it (about 20 seconds), and later starts use npm's cache. Nothing to install by hand.
+- Node.js 22 or later, with `npx` on the PATH your login shell gives Buzz.
+
+Nothing else to set up: the plugin runs the Claude Code ACP adapter with `npx`, pinned to
+`@agentclientprotocol/claude-agent-acp@0.106.0`. The first start downloads it (about 20 seconds), and
+later starts use npm's cache.
 
 It uses your whole Claude Code setup: `~/.claude/settings.json`, your model routing, MCP servers and
 skills. The plugin removes `ANTHROPIC_API_KEY` from Claude's environment so the subscription login is
@@ -40,9 +50,10 @@ used, not a key.
 
 ## Install
 
-In Buzz: **Settings → Plugins → Manage plugins → Add → Browse** under "Add from folder", pick
-`~/Code/buzz-claude-subscription/plugin`, review the access it asks for, and install. Then create an
-agent with **Claude (subscription)** as its Harness, or switch one to it.
+1. In Buzz: **Settings → Plugins → Manage plugins → Add → Browse** under "Add from folder", pick this
+   repository's `plugin/` folder, review the access it asks for, and install.
+2. Create an agent with **Claude (subscription)** as its Harness, or switch one to it.
+3. Add it to a channel, or open a DM with it, and mention it.
 
 ### Access it asks for
 
@@ -50,15 +61,17 @@ agent with **Claude (subscription)** as its Harness, or switch one to it.
 - Serve the Buzz tools to Claude on this computer (MCP), acting as the agent.
 - Read files: uploads you ask the agent to make, and Claude Code's transcripts for Activity.
 
-Claude runs commands as you, so an agent acts only on your own mentions, or ones you attested.
-
 ## How it works
 
-The same design as buzz-opencode: Buzz's side of each turn comes from the plugin API's harness kit
-(`ctx.agents.harness`); Claude's side is one `claude-agent-acp` process (the Agent Client Protocol
-adapter for Claude Code, Apache-2.0) driven by a copy of Buzz's ACP client (`src/acp/`). Each Buzz
-conversation is one Claude Code session with its own Buzz tool server. Buzz's prompt is appended to
-Claude Code's own system prompt.
+The same design as [buzz-opencode](https://github.com/dotcollectiveanz/buzz-opencode). Buzz's side of
+each turn comes from the plugin API's harness kit (`ctx.agents.harness`); Claude's side is one
+`claude-agent-acp` process (the Agent Client Protocol adapter for Claude Code, Apache-2.0) driven by
+a copy of Buzz's ACP client (`src/acp/`). For each conversation it:
+
+1. keeps one Claude Code session, started in the agent's workspace, with Buzz's tools served to it
+   over MCP as the agent;
+2. sends the turn, with Buzz's prompt appended to Claude Code's own system prompt;
+3. lets Claude reply with Buzz's `send` tool, which ends the turn.
 
 Buzz ends a turn as soon as the agent's final `send` posts; Claude Code then records that send as
 refused and the turn as interrupted. The transcript reader shows those as posted and finished.
@@ -75,3 +88,7 @@ npm run types        # Buzz's plugin API types, for typecheck
 npm run check        # typecheck, tests, manifest, icon and build freshness
 CLAUDE_LIVE=1 npx vitest run src/runtime.live.test.ts   # a real turn on your Claude Code login
 ```
+
+## Licence
+
+Apache-2.0. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).

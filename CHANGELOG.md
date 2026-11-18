@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 (2026-11-18)
+
+- **Share to the Marketplace:** the agent's card menu now offers **Share**, as it does for Buzz's own
+  Claude agents. The listing is an ordinary Buzz Claude agent with its name, picture, model and
+  instructions; whoever adds it runs it on Buzz's Claude harness with their own sign-in. The plugin,
+  your subscription and your workspace aren't shared.
+- `npm test` runs only this plugin's tests, not those of a Buzz checkout made by `npm run types`.
+- README and AGENTS.md follow the Orca plugin's layout and rules: the privacy and Share rules,
+  Buzz's UI and settings conventions, the manifest's access, and how a release is made.
+
 ## 1.1.0 (2026-11-12)
 
 - **No manual install:** the Claude Code ACP adapter now runs with `npx`, pinned to

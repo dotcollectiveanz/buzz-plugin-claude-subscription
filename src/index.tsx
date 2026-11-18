@@ -14,6 +14,7 @@ import {
   carry,
   config,
   DEFAULT_CONFIG,
+  exportShared,
   syncedSettingsSchema,
   withSyncedSettings,
 } from "./settings";
@@ -70,6 +71,7 @@ export function apply(ctx: Context) {
     defaults: () => ({ config: DEFAULT_CONFIG }),
     adopt,
     carry,
+    exportShared,
     summary: (agent) => {
       const { mode, model } = config(agent.config);
       return [mode, model].filter(Boolean).join(" · ") || "Claude";
