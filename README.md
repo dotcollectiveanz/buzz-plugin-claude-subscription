@@ -63,10 +63,9 @@ used, not a key.
 
 ## How it works
 
-The same design as [buzz-opencode](https://github.com/dotcollectiveanz/buzz-opencode). Buzz's side of
-each turn comes from the plugin API's harness kit (`ctx.agents.harness`); Claude's side is one
-`claude-agent-acp` process (the Agent Client Protocol adapter for Claude Code, Apache-2.0) driven by
-a copy of Buzz's ACP client (`src/acp/`). For each conversation it:
+Buzz's side of each turn comes from the plugin API's harness kit (`ctx.agents.harness`); Claude's
+side is one `claude-agent-acp` process (the Agent Client Protocol adapter for Claude Code,
+Apache-2.0) driven by a copy of Buzz's ACP client (`src/acp/`). For each conversation it:
 
 1. keeps one Claude Code session, started in the agent's workspace, with Buzz's tools served to it
    over MCP as the agent;
