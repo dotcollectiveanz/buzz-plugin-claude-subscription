@@ -3,7 +3,9 @@
 This repo is a **private** Buzz desktop plugin (`claude-subscription`) that registers a Claude agent
 harness running on the owner's signed-in Claude Code. Read [README.md](README.md) first. Never publish
 it, make the repo public, or add a way to share it: subscription sign-in in third-party products
-needs Anthropic's approval.
+needs Anthropic's approval. Sharing an *agent* to the Marketplace is not sharing the plugin:
+`exportShared` lists Buzz's own `claude` runtime, so whoever adds it runs Buzz's Claude harness on their
+own sign-in. Keep it that way: never list a runtime, provider or setting that points at this plugin.
 
 ## Hard rules
 
@@ -33,7 +35,7 @@ needs Anthropic's approval.
 | `src/acp/` | Buzz's ACP client, copied (see NOTICE.md); keep changes small and noted there |
 | `src/claude.ts` | The adapter's ACP hooks: model, thinking level and permission mode selection |
 | `src/models.ts` | Lists models, levels and permission modes from a short-lived adapter session |
-| `src/settings.ts` | Config, defaults, synced settings, and carry/adopt across harness changes |
+| `src/settings.ts` | Config, defaults, synced settings, carry/adopt across harness changes, and `exportShared` (Share) |
 | `src/tabs.tsx` | New agent fields, Identity/Settings tab, Activity tab and transcript view |
 | `src/transcript.ts` | Reads Claude Code's `~/.claude/projects/<workspace>/<session>.jsonl` into Buzz's turn model |
 | `src/ui.tsx` | Buzz-styled controls |

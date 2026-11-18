@@ -22,6 +22,10 @@ Same as [buzz-opencode](https://github.com/dotcollectiveanz/buzz-opencode):
 - **Settings:** Workspace and Conversations (one session per thread, or per channel).
 - **Activity:** the agent's conversations, whether each is working, and each one's transcript, read
   from Claude Code's own history in `~/.claude/projects`.
+- **Share an agent to the Marketplace:** the agent's card menu offers **Share**, as for Buzz's own
+  Claude agents. The listing is an ordinary Buzz Claude agent (name, picture, model, instructions):
+  whoever adds it runs it on Buzz's own Claude harness with their own sign-in. This plugin, your
+  subscription and your workspace are never part of it.
 - **Synced settings:** permissions, model, thinking level and scope sync across your devices.
 - A failed turn says so in its thread and tags you.
 

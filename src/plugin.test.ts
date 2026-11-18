@@ -44,6 +44,8 @@ it("activates from plugin.js, registering the Claude type with its tabs", async 
     },
   });
   expect(registered).toMatchObject({ id: "claude", title: "Claude (subscription)" });
+  // Buzz's agent menu offers Share only with `exportShared`.
+  expect(registered?.exportShared({ model: "sonnet", workspace: "~/x" })).toEqual({ runtime: "claude", model: "sonnet" });
   const roles = registered?.tabs.map((tab: { role: string }) => tab.role);
   expect(roles).toEqual(["settings", "activity"]);
   const agent = {
