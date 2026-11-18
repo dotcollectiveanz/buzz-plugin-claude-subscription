@@ -7,6 +7,8 @@
   instructions; whoever adds it runs it on Buzz's Claude harness with their own sign-in. The plugin,
   your subscription and your workspace aren't shared.
 - `npm test` runs only this plugin's tests, not those of a Buzz checkout made by `npm run types`.
+- **Releases on merge:** a version merged to `main` is tagged and released automatically, with its
+  changelog section as the notes.
 - README and AGENTS.md rewritten: the privacy and Share rules, Buzz's UI and settings conventions,
   the manifest's access, and how a release is made.
 

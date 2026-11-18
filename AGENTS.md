@@ -85,5 +85,8 @@ whose turns run on the owner's own signed-in Claude Code, through the Claude Cod
    errors.
 2. Update `version` in `package.json` and add a `## X.Y.Z (YYYY-MM-DD)` section to `CHANGELOG.md`.
 3. `npm run build && npm run check`.
-4. Commit, tag `vX.Y.Z` and push the tag. There is no release workflow and no build is attached
-   anywhere: the plugin is installed from a checkout's `plugin/` folder.
+4. Merge to `main`. The Release workflow (`.github/workflows/release.yml`) releases each version
+   that has no tag yet: it runs the check, then creates the tag `vX.Y.Z` and a GitHub release with
+   that changelog section. A merge that doesn't change the version releases nothing. Never tag or
+   release by hand, and never attach a build: the plugin is installed from a checkout's `plugin/`
+   folder.
