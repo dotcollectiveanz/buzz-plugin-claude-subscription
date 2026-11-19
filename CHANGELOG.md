@@ -1,9 +1,8 @@
 # Changelog
 
-## 1.2.0 (2026-11-19)
+## 1.3.0 (2026-11-19)
 
-- **Huddle voice:** Claude (subscription) agents can join a Huddle and talk, as OpenCode agents do
-  (OpenCode plugin 1.2.3). `google/gemini-2.5-flash` transcribes your speech, the agent works on it in
+- **Huddle voice:** Claude (subscription) agents can join a Huddle and talk. `google/gemini-2.5-flash` transcribes your speech, the agent works on it in
   its Claude session for that room, with its tools, and `openai/gpt-audio-mini` says its answer word
   for word, in the first person. What the voice says is checked against the answer; if it strays, it
   tries once more, then stays quiet rather than say something the agent didn't. The first sentence

@@ -21,11 +21,6 @@ Parts of this plugin are copied from [block/buzz-app](https://github.com/block/b
   the runtime is rebuilt on the plugin API's harness kit (`ctx.agents.harness`) in place of the app's
   internals, and the tabs are rebuilt on Buzz's global CSS classes.
 
-## Huddle voice
-
-`src/voice.ts` and the voice turn in `src/runtime.ts` are from this plugin's sibling,
-dotcollectiveanz/buzz-plugin-opencode 1.2.3 (Apache-2.0), with names changed.
-
 ## Claude Code transcripts
 
 `claudeTurns` in `src/transcript.ts` is from block/buzz-app's `src/bundled/claude-code/transcript.ts`
