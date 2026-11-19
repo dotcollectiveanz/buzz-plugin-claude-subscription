@@ -35,10 +35,13 @@ whose turns run on the owner's own signed-in Claude Code, through the Claude Cod
 - **Install and go.** Beyond Claude Code signed in and Node.js 22, nothing is set up by hand: the
   manifest runs the adapter with `npx`, pinned (`npx -y …@x.y.z`). To change the adapter, bump it in
   `plugin/manifest.json`, run the live test, and update `scripts/check.mjs` and `src/claude.test.ts`.
-- **The manifest asks only for the adapter, `mcp`, `files` and OpenRouter.** `mcp` serves the Buzz
-  tools to Claude as the agent; `files` reads uploads the agent is asked to make, Claude Code's
-  transcripts and OpenCode's OpenRouter login; `networkOrigins` reaches `https://openrouter.ai` for
-  Huddle voice only. A `manifest.host` change needs the owner's approval on update in Buzz; keep it
+- **The manifest asks only for the adapter, `mcp`, `files`, OpenRouter and Gemini.** `mcp` serves the
+  Buzz tools to Claude as the agent; `files` reads uploads the agent is asked to make, Claude Code's
+  transcripts and OpenCode's OpenRouter login; `networkOrigins` reaches `https://openrouter.ai` and
+  `https://generativelanguage.googleapis.com` for Huddle voice only.
+- **The Gemini key stays on this computer.** It is kept in Buzz's local storage
+  (`buzz-voice.gemini-api-key`, shared with the OpenCode plugin) and sent only to Google: never in
+  synced settings, config, logs or commits. A `manifest.host` change needs the owner's approval on update in Buzz; keep it
   minimal, and update `scripts/check.mjs` and `src/claude.test.ts` with it.
 - **The subscription login, never a key.** Keep `ANTHROPIC_API_KEY` out of Claude's environment
   (`ENV` in `src/claude.ts`).
@@ -61,6 +64,8 @@ whose turns run on the owner's own signed-in Claude Code, through the Claude Cod
 | `src/models.ts` | Lists models, levels and permission modes from a short-lived adapter session |
 | `src/settings.ts` | Config, defaults, synced settings, `carry`/`adopt` across harness changes, and `exportShared` (Share) |
 | `src/sessions.ts` | Each agent's conversations and their Claude sessions, in local storage |
+| `src/live.ts` | Huddle voice through Gemini Live, with `ask_agent` running the agent's turn |
+| `src/gemini.tsx` | The Gemini key and the plugin's "Claude voice" Settings card |
 | `src/voice.ts` | Huddle voice: speech to text and the answer to speech through OpenRouter, sentence by sentence |
 | `src/tabs.tsx` | New agent fields, Settings tab (identity and runtime parts), Activity tab and transcript view |
 | `src/transcript.ts` | Reads Claude Code's `~/.claude/projects/<workspace>/<session>.jsonl` into Buzz's turn model |

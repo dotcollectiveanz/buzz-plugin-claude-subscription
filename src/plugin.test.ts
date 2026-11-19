@@ -18,7 +18,10 @@ it("activates from plugin.js, registering the Claude type with its tabs", async 
   let registered: Record<string, any> | undefined;
   const store = new Map<string, string>();
   const cleanups: (() => void)[] = [];
+  const cards: Record<string, any>[] = [];
+  const settingsCards = { register: (card: Record<string, any>) => cards.push(card) };
   plugin.apply({
+    inject: (_deps: string[], run: (scope: unknown) => void) => run({ settingsCards }),
     react: React,
     pluginOwner: { id: "claude-subscription", revision: "test" },
     effect: (start: () => () => void) => cleanups.push(start()),
@@ -46,6 +49,11 @@ it("activates from plugin.js, registering the Claude type with its tabs", async 
   expect(registered).toMatchObject({ id: "claude", title: "Claude (subscription)" });
   // Huddles seat only agent types with voice.
   expect(typeof registered?.voice).toBe("function");
+  // The Gemini key for voice is set in the plugin's own Settings card.
+  expect(cards).toMatchObject([{ id: "voice", title: "Claude voice", group: "App" }]);
+  const card = renderToStaticMarkup(React.createElement(cards[0]!.component, { active: () => true }));
+  expect(card).toContain("Gemini API key");
+  expect(card).toContain('type="password"');
   // Buzz's agent menu offers Share only with `exportShared`.
   expect(registered?.exportShared({ model: "sonnet", workspace: "~/x" })).toEqual({ runtime: "claude", model: "sonnet" });
   const roles = registered?.tabs.map((tab: { role: string }) => tab.role);

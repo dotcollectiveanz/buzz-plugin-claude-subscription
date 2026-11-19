@@ -23,7 +23,8 @@
       }
     ],
     "networkOrigins": [
-      "https://openrouter.ai"
+      "https://openrouter.ai",
+      "https://generativelanguage.googleapis.com"
     ],
     "mcp": true,
     "files": true

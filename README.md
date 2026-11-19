@@ -39,6 +39,10 @@ usage limits.
   quick "On it". It hears you throughout: talk over it to cut it off, or add to a request while it
   works. While you're in the Huddle, a message it posts elsewhere that tags you is read aloud too, so
   you can leave a Huddle open and let it call on you. Use headphones, or its own voice can cut it off.
+- **Live voice with Gemini:** add a Gemini API key in **Settings → Claude voice** and Huddles run on
+  Gemini Live, for listening and speaking, with no OpenRouter needed. It talks with you straight away
+  and hands real work to the agent in the background, so it's a conversation rather than turn by
+  turn. The key stays on this computer.
 - **Failures are reported.** A failed turn says so in its thread and tags you.
 
 Claude runs commands as you, so an agent acts only on your own mentions, or ones you attested: Buzz's
@@ -72,6 +76,7 @@ used, not a key.
 - Serve the Buzz tools to Claude on this computer (MCP), acting as the agent.
 - Read files: uploads you ask the agent to make, Claude Code's transcripts for Activity, and
   OpenCode's OpenRouter login (`~/.local/share/opencode/auth.json`) for voice.
+- Reach `https://generativelanguage.googleapis.com`, for live voice with Gemini only.
 - Reach `https://openrouter.ai`, for voice only. Your Huddle speech goes there to be transcribed, and
   the agent's answers to be voiced.
 

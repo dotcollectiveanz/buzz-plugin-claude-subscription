@@ -15,8 +15,14 @@
   answer when it's done.
 - **It speaks up when it needs you:** while you're in a Huddle with the agent, any message it posts
   elsewhere that tags you is read aloud too, with where it was posted.
-- Voice runs through OpenRouter on the key OpenCode is signed in with (`opencode auth login`). Updating
-  asks you to approve access to `https://openrouter.ai`.
+- **Live voice with Gemini:** add a Gemini API key in **Settings → Claude voice** and Huddles run on
+  Gemini Live (`gemini-3.8-live`), a speech-to-speech model, for both listening and speaking. It answers
+  small talk at once, lets you talk over it, and hands anything that needs the agent to its Claude
+  session in the background, so you can keep talking while it works. The key is checked with Google
+  when you save it and kept on this computer only; the OpenCode plugin shares it.
+- Without a Gemini key, voice runs through OpenRouter on the key OpenCode is signed in with
+  (`opencode auth login`). Updating asks you to approve access to `https://openrouter.ai` and
+  `https://generativelanguage.googleapis.com`.
 
 ## 1.2.0 (2026-11-18)
 
