@@ -35,7 +35,10 @@ usage limits.
   the rest is voiced behind it. Both run through OpenRouter on the key OpenCode is signed in with
   (`opencode auth login`): your Claude subscription has no audio models. Your words are posted in the
   room under your name, and its answer as a normal message from the agent. If you leave before it
-  answers, the work carries on and the answer is still posted.
+  answers, the work carries on and the answer is still posted. A turn that runs long starts with a
+  quick "On it". It hears you throughout: talk over it to cut it off, or add to a request while it
+  works. While you're in the Huddle, a message it posts elsewhere that tags you is read aloud too, so
+  you can leave a Huddle open and let it call on you. Use headphones, or its own voice can cut it off.
 - **Failures are reported.** A failed turn says so in its thread and tags you.
 
 Claude runs commands as you, so an agent acts only on your own mentions, or ones you attested: Buzz's

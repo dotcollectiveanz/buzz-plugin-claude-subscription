@@ -8,6 +8,13 @@
   tries once more, then stays quiet rather than say something the agent didn't. The first sentence
   plays as soon as it's voiced, while the rest is voiced behind it.
 - Your words are posted in the room as "Name: …" and the agent's answer as a normal message from it.
+- **Talk over the agent:** it hears you while it speaks. Talk over it for a moment and it stops, then
+  answers what you said. Speakers can still set it off, so headphones work best.
+- **It keeps listening while it works:** what you say during a turn is answered next.
+- **"On it":** when a turn runs longer than a second and a half, the agent says so, then gives its
+  answer when it's done.
+- **It speaks up when it needs you:** while you're in a Huddle with the agent, any message it posts
+  elsewhere that tags you is read aloud too, with where it was posted.
 - Voice runs through OpenRouter on the key OpenCode is signed in with (`opencode auth login`). Updating
   asks you to approve access to `https://openrouter.ai`.
 
