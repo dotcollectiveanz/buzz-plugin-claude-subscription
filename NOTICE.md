@@ -8,7 +8,8 @@ Parts of this plugin are copied from [block/buzz-app](https://github.com/block/b
 - `src/acp/process.ts`, `session.ts`, `agent-sessions.ts`, `steps.ts`, `types.ts` and
   `session-control.ts`: Buzz's ACP client, from `src/features/agent-harness/`. Changed: imports
   point at local files, and a conversation's session records the harness kit's cursor instead of a
-  timestamp (`newerCursor`).
+  timestamp (`newerCursor`), and `deliver` takes no cursor for a message from outside the
+  conversation, such as Huddle speech.
 - `src/acp/shims.ts`, `src/transcript-model.ts` and `src/sessions.ts`: small helpers from
   `src/buzz-mcp/message-tools.ts`, `src/bundled/claude-code/prompt.ts`,
   `src/features/agents/agent-config.ts`, `src/bundled/codex/config.ts`,
@@ -19,6 +20,11 @@ Parts of this plugin are copied from [block/buzz-app](https://github.com/block/b
   from Marcus Quinn (casassg/buzz-app#1) and DotCollective (casassg/buzz-app#2). Changed:
   the runtime is rebuilt on the plugin API's harness kit (`ctx.agents.harness`) in place of the app's
   internals, and the tabs are rebuilt on Buzz's global CSS classes.
+
+## Huddle voice
+
+`src/voice.ts` and the voice turn in `src/runtime.ts` are from this plugin's sibling,
+dotcollectiveanz/buzz-plugin-opencode 1.2.3 (Apache-2.0), with names changed.
 
 ## Claude Code transcripts
 

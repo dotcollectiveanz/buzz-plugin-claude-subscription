@@ -97,6 +97,8 @@ it("runs the pinned claude-agent-acp with npx, and declares the Buzz tools", () 
           args: ["-y", "@agentclientprotocol/claude-agent-acp@0.106.0"],
         },
       ],
+      // Huddle voice: speech in and out through OpenRouter (src/voice.ts).
+      networkOrigins: ["https://openrouter.ai"],
       mcp: true,
       files: true,
     },

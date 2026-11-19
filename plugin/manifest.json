@@ -22,6 +22,9 @@
         ]
       }
     ],
+    "networkOrigins": [
+      "https://openrouter.ai"
+    ],
     "mcp": true,
     "files": true
   }

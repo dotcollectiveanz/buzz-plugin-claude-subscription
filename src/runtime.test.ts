@@ -1,15 +1,16 @@
 /// <reference types="node" />
 import { expect, it, vi } from "vitest";
 import type { HostProcessOptions } from "./acp/host";
-import { ClaudeRuntime, sessionTitle } from "./runtime";
+import { ClaudeRuntime, sessionTitle, voicePrompt } from "./runtime";
 import { DEFAULT_CONFIG } from "./settings";
 
 const AGENT = "a".repeat(64);
 const CHANNEL = "c".repeat(36);
 const ROOT = "e".repeat(64);
 
-/** A stand-in for `claude-agent-acp`: answers prompts with `answer`. */
-function fakeClaude(answer: () => Record<string, unknown>) {
+/** A stand-in for `claude-agent-acp`: answers prompts with `answer`, first
+ * writing `said` as the agent's message, if given. */
+function fakeClaude(answer: () => Record<string, unknown>, said?: string) {
   const received: { method: string; params: Record<string, unknown> }[] = [];
   let sessions = 0;
   const spawn = vi.fn(async (_id: string, options: HostProcessOptions = {}) => ({
@@ -25,6 +26,12 @@ function fakeClaude(answer: () => Record<string, unknown>) {
             : method === "session/prompt"
               ? answer()
               : {};
+      if (method === "session/prompt" && said)
+        setTimeout(() =>
+          options.onStdout?.(
+            `${JSON.stringify({ jsonrpc: "2.0", method: "session/update", params: { sessionId: params.sessionId, update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: said } } } })}\n`,
+          ),
+        );
       setTimeout(() =>
         options.onStdout?.(
           `${JSON.stringify({ jsonrpc: "2.0", id, ...("error" in result ? result : { result }) })}\n`,
@@ -61,6 +68,7 @@ function fakeBuzz(admit = true) {
   };
   const agents = {
     harness,
+    handle: (key: string) => ({ key, pubkey: AGENT, owner: "b".repeat(64), name: "Ada" }),
     relay: () => undefined,
     tools: () => [],
     storage: {
@@ -195,4 +203,87 @@ it("names sessions after the agent and where they are", () => {
     `Ada · #general · ${ROOT.slice(0, 8)}`,
   );
   expect(sessionTitle(undefined, "DM")).toBe("Buzz agent · DM");
+});
+
+it("runs Huddle speech in the room's session, with its tools, and returns what to say", async () => {
+  const buzz = fakeBuzz();
+  // The kit's tools and replies refuse a conversation it did not admit, so
+  // the voice turn must use the very object the kit hands back.
+  const room = Object.freeze({ key: CHANNEL, channel: CHANNEL, topLevel: true, where: "DM" });
+  buzz.harness.conversation.mockImplementation((async () => room) as never);
+  const claude = fakeClaude(() => ({ stopReason: "end_turn" }), "It's sunny in Melbourne.");
+  const oc = runtime(buzz, claude.spawn);
+  const seat = {
+    agent: { key: AGENT, name: "Ada", config: DEFAULT_CONFIG },
+    conversation: { channelId: CHANNEL },
+    config: DEFAULT_CONFIG,
+    team: "",
+  };
+  const said = await oc.voiceTurn(seat as never, "What's the weather?");
+  expect(said).toBe("It's sunny in Melbourne.");
+  expect(buzz.harness.conversation).toHaveBeenCalledWith(
+    expect.objectContaining({
+      channelId: CHANNEL,
+      agent: expect.objectContaining({ key: AGENT }),
+      trigger: expect.objectContaining({
+        type: "plugin",
+        plugin: "claude-subscription",
+        channel: CHANNEL,
+        topLevel: true,
+        text: "What's the weather?",
+      }),
+    }),
+    "channel",
+  );
+  expect(buzz.harness.tools).toHaveBeenCalledWith(
+    expect.objectContaining({ key: AGENT }),
+    room,
+    expect.anything(),
+  );
+  const prompt = claude.received.find((m) => m.method === "session/prompt");
+  expect(JSON.stringify(prompt?.params)).toContain("What's the weather?");
+  // The answer is posted as the agent's own message, with no label.
+  expect(buzz.harness.reply).toHaveBeenCalledWith(
+    expect.objectContaining({ key: AGENT }),
+    room,
+    "It's sunny in Melbourne.",
+  );
+  expect(oc.conversations(AGENT).map((c) => c.key)).toEqual([CHANNEL]);
+  oc.dispose();
+});
+
+it("posts the owner's speech in the room under their name, as a plain message", async () => {
+  const buzz = fakeBuzz();
+  const room = Object.freeze({ key: CHANNEL, channel: CHANNEL, topLevel: true, where: "DM" });
+  buzz.harness.conversation.mockImplementation((async () => room) as never);
+  const oc = runtime(buzz, fakeClaude(() => ({ stopReason: "end_turn" }), "unused").spawn);
+  const seat = {
+    agent: { key: AGENT, name: "Ada", owner: "f".repeat(64), config: DEFAULT_CONFIG },
+    conversation: { channelId: CHANNEL },
+  };
+  await oc.voicePost(seat as never, "owner", "Can you hear me?");
+  await oc.voicePost(seat as never, "agent", "Yes, clearly.");
+  const lines = buzz.harness.reply.mock.calls.map((call) => (call as unknown[])[2]);
+  expect(lines).toEqual(["Owner: Can you hear me?", "Yes, clearly."]);
+  expect(lines.join()).not.toContain("transcribed");
+  oc.dispose();
+});
+
+it("says why when Buzz won't admit the Huddle's conversation", async () => {
+  const buzz = fakeBuzz(false);
+  const claude = fakeClaude(() => ({ stopReason: "end_turn" }), "unused");
+  const oc = runtime(buzz, claude.spawn);
+  const seat = {
+    agent: { key: AGENT, name: "Ada", config: DEFAULT_CONFIG },
+    conversation: { channelId: CHANNEL },
+  };
+  await expect(oc.voiceTurn(seat as never, "Hello?")).rejects.toThrow(/did not admit/);
+  expect(buzz.harness.tools).not.toHaveBeenCalled();
+  oc.dispose();
+});
+
+it("asks for a spoken answer to the owner's words", () => {
+  const prompt = voicePrompt("DM", 'Say "hi"');
+  expect(prompt).toContain('"Say \\"hi\\""');
+  expect(prompt).toContain("read aloud");
 });

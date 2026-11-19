@@ -38,6 +38,15 @@ const PROMPTS_KEY = "claude-subscription" + ".prompts.v1:";
 /** Each agent's saved system prompts stay under this many characters. */
 const PROMPTS_BUDGET = 600_000;
 const TITLE_LIMIT = 80;
+/** The plugin id (plugin/manifest.json) a Huddle's speech is admitted under. */
+const VOICE_PLUGIN = "claude-subscription";
+
+type VoiceSeat = Readonly<{
+  agent: Agent;
+  conversation: Readonly<{ channelId: string }>;
+  config?: unknown;
+  team?: string;
+}>;
 
 type HarnessPrompt = Awaited<
   ReturnType<Agents["harness"]["turnPrompt"]>
@@ -56,6 +65,19 @@ export function sessionTitle(
     .slice(0, TITLE_LIMIT - suffix.length)
     .trim();
   return `${title}${suffix}`;
+}
+
+/** A Huddle turn's prompt: the owner's words, and how to answer out loud. */
+export function voicePrompt(where: string, heard: string) {
+  return [
+    `<huddle-voice>`,
+    `Your owner said this out loud to you in a Huddle (a voice call) in ${where}:`,
+    JSON.stringify(heard),
+    `</huddle-voice>`,
+    "It is a request from your owner, as if they had typed it to you. Do any work it asks for with your tools, as for a message.",
+    "Your final message is read aloud to them and posted in the Huddle as what you said: write it as a few short, plain spoken sentences, with no markdown, lists, code or links, and don't also post it with the Buzz send tool.",
+    "Use send only for what they ask you to post, or for what needs writing down, such as links or long results; then say briefly that you posted it.",
+  ].join("\n");
 }
 
 /** The thread an event belongs to, or the event itself as its root. */
@@ -465,6 +487,120 @@ export class ClaudeRuntime {
     void handoff.done
       .catch((error) => this.report(agent, conversation, String(error)))
       .catch((error) => console.warn("Claude handover failed", error));
+  }
+
+  /** The Huddle's room as a conversation the kit admitted: its tools and
+   * replies take no other. Speech is admitted as this plugin's own wake in the
+   * room, at its top level; the wake is local and never published. */
+  private async voiceRoom(seat: VoiceSeat, heard: string) {
+    const agent = this.buzz.handle(seat.agent.key);
+    if (!agent) throw new Error("The agent isn't running here");
+    const settings = config(seat.config ?? seat.agent.config);
+    const entry = this.entry(agent.key, settings);
+    if (seat.team !== undefined) entry.team = seat.team;
+    // A session's system prompt needs only the agent and its teams.
+    entry.delivery ??= { agent, team: entry.team } as unknown as Delivery;
+    const { channelId } = seat.conversation;
+    const label = this.channelLabel(agent.key, channelId);
+    const where =
+      label?.channelType === "dm"
+        ? "DM"
+        : label?.name
+          ? `#${label.name}`
+          : channelId.slice(0, 8);
+    const at = Date.now();
+    const conversation = await this.kit.conversation(
+      {
+        trigger: {
+          type: "plugin",
+          plugin: VOICE_PLUGIN,
+          channel: channelId,
+          topLevel: true,
+          text: heard,
+          id: `voice:${channelId}:${at}`,
+          at,
+        },
+        channelId,
+        agent,
+        config: settings,
+        signal: AbortSignal.timeout(30_000),
+        workingUntil: () => undefined,
+        current: () => true,
+      } as Delivery,
+      "channel",
+    );
+    if (!conversation)
+      throw new Error("Buzz did not admit this Huddle's conversation");
+    return { agent, entry, where, conversation };
+  }
+
+  /** Posts a line of the Huddle in the room as the agent's own message: the
+   * owner's speech under their name, the agent's words as they are. */
+  async voicePost(seat: VoiceSeat, speaker: "owner" | "agent", text: string) {
+    const { agent, conversation } = await this.voiceRoom(seat, text);
+    const owner = seat.agent.owner;
+    const name = (owner && this.name(agent.key, owner)) || "Owner";
+    await this.kit.reply(
+      agent,
+      conversation,
+      speaker === "owner" ? `${name}: ${text}` : text,
+    );
+  }
+
+  /** Runs what the owner said in a Huddle as a turn in the room's session,
+   * with its tools, posts its final message in the room as the agent's own,
+   * and gives it back to say aloud. Speech is not a message, so the session's
+   * cursor stays where text left it. */
+  async voiceTurn(seat: VoiceSeat, heard: string): Promise<string> {
+    const { agent, entry, where, conversation } = await this.voiceRoom(
+      seat,
+      heard,
+    );
+    const channelId = seat.conversation.channelId;
+    const { key } = conversation;
+    const prior = entry.policies.get(key);
+    let interrupted = false;
+    const done = (async () => {
+      await prior?.settled.catch(() => undefined);
+      if (interrupted) throw new Error("Stopped");
+      entry.tools.set(
+        key,
+        this.kit.tools(agent, conversation, { read: this.reader(entry) }),
+      );
+      return entry.sessions.deliver(key, voicePrompt(where, heard), undefined, {
+        title: sessionTitle(entry.name, where),
+        activityScope: channelId,
+      });
+    })();
+    const policy = {
+      topLevel: true,
+      handed: done,
+      settled: done.then(
+        () => entry.sessions.idle(key),
+        () => undefined,
+      ),
+      cancel() {
+        interrupted = true;
+        prior?.cancel();
+      },
+    };
+    entry.policies.set(key, policy);
+    this.notify();
+    void policy.settled.then(() => {
+      if (entry.policies.get(key) !== policy) return;
+      entry.policies.delete(key);
+      this.notify();
+    });
+    const result = await done;
+    if (!result.ok) throw new Error(result.error ?? "The turn failed");
+    const text =
+      result.text?.trim() ||
+      (result.answered ? "Done. I've posted it in the chat." : "Done.");
+    if (result.text?.trim())
+      await this.kit
+        .reply(agent, conversation, text)
+        .catch((error) => console.warn("Claude could not post", error));
+    return text;
   }
 
   /** Runs a standalone turn, such as a watch's or a timer's, in a one-off
