@@ -211,4 +211,48 @@ describe.skipIf(!LIVE)("the runtime against claude-agent-acp", () => {
       runtime.dispose();
     }
   });
+  it("runs Huddle speech as a turn and returns its answer to say", {
+    timeout: 240_000,
+  }, async () => {
+    const room = Object.freeze({ key: CHANNEL, channel: CHANNEL, topLevel: true, where: "DM" });
+    const agents = {
+      harness: {
+        conversation: async () => room,
+        systemPrompt: async () => "You are Ada, an agent in a chat app.",
+        tools: () => async (message: { id?: number }) =>
+          message.id === undefined ? undefined : { jsonrpc: "2.0", id: message.id, result: { tools: [] } },
+        reply: vi.fn(async () => undefined),
+      },
+      handle: (key: string) => ({ key, pubkey: AGENT, owner: "b".repeat(64), name: "Ada" }),
+      relay: () => undefined,
+      tools: () => [],
+      storage: { get: () => null, set: async () => {} },
+    };
+    const items = new Map<string, string>();
+    const runtime = new ClaudeRuntime(
+      agents as never,
+      {
+        spawn,
+        resolveDirectory: async (path: string) => path.replace(/^~/, homedir()),
+        readFile: async (path: string) => new Uint8Array(readFileSync(path)),
+        serveMcp,
+      } as never,
+      {
+        getItem: (key: string) => items.get(key) ?? null,
+        setItem: (key: string, value: string) => void items.set(key, value),
+      } as unknown as Storage,
+    );
+    const workspace = realpathSync(mkdtempSync(join(tmpdir(), "buzz-claude-voice-")));
+    const config = { ...DEFAULT_CONFIG, model: MODEL, workspace };
+    try {
+      const said = await runtime.voiceTurn(
+        { agent: { key: AGENT, name: "Ada", owner: "b".repeat(64), config }, conversation: { channelId: CHANNEL }, config } as never,
+        "Answer with just the word pong.",
+      );
+      expect(said.toLowerCase()).toContain("pong");
+      expect(agents.harness.reply).toHaveBeenCalledWith(expect.anything(), room, said);
+    } finally {
+      runtime.dispose();
+    }
+  });
 });
