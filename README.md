@@ -43,6 +43,12 @@ usage limits.
   Gemini Live, for listening and speaking, with no OpenRouter needed. It talks with you straight away
   and hands real work to the agent in the background, so it's a conversation rather than turn by
   turn. The key stays on this computer.
+- **Local voice with oMLX:** if [oMLX](https://github.com/jundot/omlx) is running with a speech-to-text
+  model (such as `mlx-community/parakeet-tdt-0.6b-v3`) and a text-to-speech model (such as
+  `mlx-community/Kokoro-82M-bf16`), Huddles listen and speak on this computer: free, private, and a
+  fraction of a second each way once warm. The plugin finds oMLX's port, key and models in `~/.omlx`.
+  Pick the voice in **Settings → Claude voice**: Automatic uses local, then Gemini Live with a key,
+  then OpenRouter.
 - **Failures are reported.** A failed turn says so in its thread and tags you.
 
 Claude runs commands as you, so an agent acts only on your own mentions, or ones you attested: Buzz's
@@ -73,6 +79,8 @@ used, not a key.
 ### Access it asks for
 
 - Run `npx -y @agentclientprotocol/claude-agent-acp@0.106.0` (the Claude Code ACP adapter).
+- Run `node -e` with the oMLX helper (`src/omlx-helper.cjs`), for local voice. It reaches only oMLX
+  on `127.0.0.1` with oMLX's own key, and only its model list and speech routes.
 - Serve the Buzz tools to Claude on this computer (MCP), acting as the agent.
 - Read files: uploads you ask the agent to make, Claude Code's transcripts for Activity, and
   OpenCode's OpenRouter login (`~/.local/share/opencode/auth.json`) for voice.

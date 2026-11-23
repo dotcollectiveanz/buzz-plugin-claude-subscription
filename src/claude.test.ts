@@ -96,6 +96,12 @@ it("runs the pinned claude-agent-acp with npx, and declares the Buzz tools", () 
           program: "npx",
           args: ["-y", "@agentclientprotocol/claude-agent-acp@0.106.0"],
         },
+        // Huddle voice's bridge to a local oMLX server (src/omlx-helper.cjs).
+        {
+          id: "omlx",
+          program: "node",
+          args: ["-e", readFileSync(new URL("./omlx-helper.cjs", import.meta.url), "utf8")],
+        },
       ],
       // Huddle voice: speech in and out through OpenRouter (src/voice.ts).
       networkOrigins: ["https://openrouter.ai", "https://generativelanguage.googleapis.com"],
