@@ -1,6 +1,6 @@
 {
   "name": "buzz-claude-subscription",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": "true",
   "description": "Private Buzz plugin: agents on your own signed-in Claude Code.",
   "type": "module",

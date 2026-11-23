@@ -17,7 +17,8 @@ check("manifest apiVersion 1", manifest.apiVersion === 1);
 const desc = Buffer.byteLength(manifest.description || "");
 check("manifest description is 1-280 bytes", desc >= 1 && desc <= 280, `${desc} bytes`);
 const processes = (manifest.host?.processes ?? []).map((p) => `${p.id}=${p.program} ${(p.args ?? []).join(" ")}`);
-check("manifest runs the pinned claude-agent-acp with npx", processes.join(",") === "claude=npx -y @agentclientprotocol/claude-agent-acp@0.106.0", processes.join(","));
+const helper = readFileSync(join(root, "src/omlx-helper.cjs"), "utf8");
+check("manifest runs the pinned claude-agent-acp with npx, and the oMLX helper", processes.join(",") === `claude=npx -y @agentclientprotocol/claude-agent-acp@0.106.0,omlx=node -e ${helper}`, processes.map((p) => p.slice(0, 60)).join(","));
 check("manifest asks for MCP and files", manifest.host?.mcp === true && manifest.host?.files === true);
 check("manifest reaches only OpenRouter and Gemini, for voice", JSON.stringify(manifest.host?.networkOrigins) === '["https://openrouter.ai","https://generativelanguage.googleapis.com"]', JSON.stringify(manifest.host?.networkOrigins));
 

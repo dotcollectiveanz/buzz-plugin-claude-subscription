@@ -35,7 +35,11 @@ whose turns run on the owner's own signed-in Claude Code, through the Claude Cod
 - **Install and go.** Beyond Claude Code signed in and Node.js 22, nothing is set up by hand: the
   manifest runs the adapter with `npx`, pinned (`npx -y …@x.y.z`). To change the adapter, bump it in
   `plugin/manifest.json`, run the live test, and update `scripts/check.mjs` and `src/claude.test.ts`.
-- **The manifest asks only for the adapter, `mcp`, `files`, OpenRouter and Gemini.** `mcp` serves the
+- **The oMLX helper reaches only oMLX.** `src/omlx-helper.cjs` runs as `node -e` (the build copies it
+  into the manifest, and `scripts/check.mjs` checks they match). It talks only to `127.0.0.1` on
+  oMLX's port, with oMLX's own key, and only `/v1/models` and the speech routes. Keep it that way:
+  any change to it changes the manifest, which the owner approves on update.
+- **The manifest asks only for the adapter, the oMLX helper, `mcp`, `files`, OpenRouter and Gemini.** `mcp` serves the
   Buzz tools to Claude as the agent; `files` reads uploads the agent is asked to make, Claude Code's
   transcripts and OpenCode's OpenRouter login; `networkOrigins` reaches `https://openrouter.ai` and
   `https://generativelanguage.googleapis.com` for Huddle voice only.
@@ -65,7 +69,8 @@ whose turns run on the owner's own signed-in Claude Code, through the Claude Cod
 | `src/settings.ts` | Config, defaults, synced settings, `carry`/`adopt` across harness changes, and `exportShared` (Share) |
 | `src/sessions.ts` | Each agent's conversations and their Claude sessions, in local storage |
 | `src/live.ts` | Huddle voice through Gemini Live, with `ask_agent` running the agent's turn |
-| `src/gemini.tsx` | The Gemini key and the plugin's "Claude voice" Settings card |
+| `src/gemini.tsx` | The voice choice, the Gemini key and the plugin's "Claude voice" Settings card |
+| `src/omlx.ts` | Huddle voice on local oMLX models, through `src/omlx-helper.cjs` |
 | `src/voice.ts` | Huddle voice: speech to text and the answer to speech through OpenRouter, sentence by sentence |
 | `src/tabs.tsx` | New agent fields, Settings tab (identity and runtime parts), Activity tab and transcript view |
 | `src/transcript.ts` | Reads Claude Code's `~/.claude/projects/<workspace>/<session>.jsonl` into Buzz's turn model |

@@ -1,7 +1,8 @@
 // Huddle voice for Claude (subscription) agents, through OpenRouter. Claude
 // Code has no live audio, so a seat is a loop: the owner's speech is cut into
 // utterances, transcribed by an audio-input model, run as a turn in the agent's
-// Claude session for the room (with its tools), and its final message read aloud by
+// Claude session for the room (with its tools), and its final message read
+// aloud by
 // an audio-output model, word for word as the agent's own line: first
 // sentence first, so it starts talking while the rest is voiced. The owner is
 // heard throughout: talking over the agent cuts it off, and what they say
@@ -334,30 +335,22 @@ export type Think = (heard: string) => Promise<string>;
 export type Post = (speaker: "owner" | "agent", text: string) => Promise<void>;
 
 /** Opens a Huddle seat for a Claude agent. */
-export async function openVoice(
-  seat: Seat,
-  host: Host,
-  think: Think,
-  post: Post,
-): Promise<Connection & { announce(text: string): void }> {
-  seat.signal.throwIfAborted();
-  if (seat.agent.protection)
-    throw new Error("Voice is unavailable for protected agents");
+/** Speech to text and text to speech for a seat: OpenRouter's models, or a
+ * local server's (src/omlx.ts). `speak` gives 24 kHz PCM16, or undefined to
+ * leave a piece unsaid. */
+export type Engine = Readonly<{
+  listen(samples: Float32Array): Promise<string | undefined>;
+  speak(text: string): Promise<{ pcm: Uint8Array } | undefined>;
+}>;
+
+/** Listening and speaking through OpenRouter, on OpenCode's OpenRouter login. */
+export async function openRouterEngine(host: Host): Promise<Engine> {
   if (!host.readFile) throw new Error("Voice needs the desktop app");
   const key = await openRouterKey(host.readFile.bind(host));
   if (!key)
     throw new Error(
       "Sign OpenCode in to OpenRouter (opencode auth login) to use voice",
     );
-  seat.signal.throwIfAborted();
-
-  let busy = false;
-  let closed = false;
-  let playing = false;
-  /** The owner talked over the agent: stop what it's saying. */
-  let cut = false;
-  const queue: ({ heard: Float32Array } | { say: string })[] = [];
-
   const send = async (body: unknown) => {
     const response = await host.request({
       url: COMPLETIONS,
@@ -419,6 +412,28 @@ export async function openVoice(
     }
     return undefined;
   };
+
+  return { listen, speak };
+}
+
+export async function openVoice(
+  seat: Seat,
+  host: Host,
+  think: Think,
+  post: Post,
+  given?: Engine,
+): Promise<Connection & { announce(text: string): void }> {
+  seat.signal.throwIfAborted();
+  if (seat.agent.protection)
+    throw new Error("Voice is unavailable for protected agents");
+  const { listen, speak } = given ?? (await openRouterEngine(host));
+  seat.signal.throwIfAborted();
+  let busy = false;
+  let closed = false;
+  let playing = false;
+  /** The owner talked over the agent: stop what it's saying. */
+  let cut = false;
+  const queue: ({ heard: Float32Array } | { say: string })[] = [];
 
   const play = async (samples: Float32Array) => {
     playing = true;
